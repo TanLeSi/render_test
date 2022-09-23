@@ -16,4 +16,4 @@ a = pd.read_sql_query("""
     select * from InventoryAuditReport where Posting_Date = '2022-09-23'
 """, con = rm_mydb)
 
-print(a.head())
+st.write(a.head())
