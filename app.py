@@ -4,10 +4,10 @@ import plotly.express as px
 from sqlalchemy import create_engine
 import pandas as pd
 from urllib.parse import quote
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from datetime import datetime, date, timedelta
 from functions import create_AgGrid, file_download
-load_dotenv()
+# load_dotenv()
 
 rm_port = os.getenv('port')
 rm_dbname = os.getenv('dbname')
