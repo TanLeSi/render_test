@@ -7,10 +7,10 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from urllib.parse import quote
 
-load_dotenv()
+# load_dotenv()
 rm_port = os.getenv('port')
 rm_dbname = os.getenv('dbname')
 rm_host = os.getenv('host')
