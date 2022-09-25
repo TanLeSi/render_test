@@ -7,8 +7,8 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
-# from dotenv import load_dotenv
 from urllib.parse import quote
+# from dotenv import load_dotenv
 
 # load_dotenv()
 rm_port = os.getenv('port')
@@ -28,10 +28,13 @@ def create_AgGrid(df, button_key= 0):
     sel_mode = st.radio('Selection Type', options= ['single'], key= button_key)
     gd.configure_selection(selection_mode= sel_mode, use_checkbox= True)
     gridoptions = gd.build()
+    print(df.info())
     grid_table = AgGrid(df, gridOptions= gridoptions,
-                        update_mode= GridUpdateMode.SELECTION_CHANGED,
-                        theme= 'fresh',
-                        fit_columns_on_grid_load= True)
+                        update_mode= GridUpdateMode.MODEL_CHANGED,
+                        theme= 'balham',
+                        fit_columns_on_grid_load= True,
+                        key= button_key,
+                        reload_data= True)
     sel_row = grid_table['selected_rows']
     return grid_table, sel_row
 
