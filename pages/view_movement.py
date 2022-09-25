@@ -87,7 +87,12 @@ def prepare_data(movement: pd.DataFrame, end_date: str):
     VERSION = {
         '11635': 4120, 
         '11674': 500,
-        '11713': 500
+        '11713': 500,
+        '11525': 1292,
+        '11411': 2000,
+        '11517': 1960,
+        '12013': 54,
+        '11533': 86
     }
     movement['sum_quantity'].fillna(0, inplace= True)
     movement['article_no'] = movement['article_no'].astype(int)

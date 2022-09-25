@@ -57,7 +57,12 @@ def get_movement(start: str, end: str, article_no: int):
     VERSION = {
         '11635': 4120, 
         '11674': 500,
-        '11713': 500
+        '11713': 500,
+        '11525': 1292,
+        '11411': 2000,
+        '11517': 1960,
+        '12013': 54,
+        '11533': 86
     }
     select_query = f"""
         select Document_Number
