@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from urllib.parse import quote
 # from dotenv import load_dotenv
-
 # load_dotenv()
+
 rm_port = os.getenv('port')
 rm_dbname = os.getenv('dbname')
 rm_host = os.getenv('host')
@@ -28,7 +28,6 @@ def create_AgGrid(df, button_key= 0):
     sel_mode = st.radio('Selection Type', options= ['single'], key= button_key)
     gd.configure_selection(selection_mode= sel_mode, use_checkbox= True)
     gridoptions = gd.build()
-    print(df.info())
     grid_table = AgGrid(df, gridOptions= gridoptions,
                         update_mode= GridUpdateMode.MODEL_CHANGED,
                         theme= 'balham',

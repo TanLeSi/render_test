@@ -11,9 +11,9 @@ from datetime import datetime
 from sqlalchemy import create_engine
 direc = Path().cwd()
 sys.path.append(f'{direc.parents[0]}')
-from dotenv import load_dotenv
 from urllib.parse import quote
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 rm_port = os.getenv('port')
 rm_dbname = os.getenv('dbname')
 rm_host = os.getenv('host')

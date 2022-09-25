@@ -7,4 +7,4 @@ plotly-express
 openpyxl
 PyMySQL
 SQLAlchemy
-streamlit-aggrid
+streamlit-aggrid== 0.3.3
