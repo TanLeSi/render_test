@@ -1,4 +1,5 @@
 from cgi import test
+from select import select
 from weakref import ProxyType
 import pandas as pd 
 import streamlit as st 
@@ -16,6 +17,7 @@ rm_dbname = os.getenv('dbname')
 rm_host = os.getenv('host')
 rm_user = os.getenv('user')
 rm_password = os.getenv('password')
+
 rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
 
 pd.options.display.float_format = "{:,.2f}".format
@@ -111,22 +113,41 @@ def test_int_input(input):
         st.warning('MOI must be a number')
         st.stop()
 
+def get_MOI_article(article_nos: list[int]):
+    article_nos_str = ', '.join(article_nos)
+    MOI_article_sum = pd.DataFrame()
+    for each_article in article_nos:
+        article_stock = get_info_article(each_article)
+        MOI_article_sum = pd.concat([MOI_article_sum, article_stock], ignore_index= True)
+    st.header(f"{article_nos_str} across all markets")
+    df_return, selected_row_std = create_AgGrid(article_stock, article_nos_str)
+    st.download_button(
+            label= f'Download {article_nos_str} across all markets',
+            data = pd.DataFrame.from_dict(df_return['data']).to_csv(index= False).encode('utf-8'),
+            file_name= f'{article_nos_str}_all_markets.csv',
+            mime='csv'
+        )
+
 st.header('Stock overview')
+with st.expander('Explanation for using comparison'):
+    st.write(r"""
+        Stock overview shows articles that have MOI greater/less or between given MOI.
+    """)
 overview_operator = st.radio(
     label= 'Choose operator',
     options= ('greater than', 'less than', 'between')
 )
 if overview_operator == 'between':
-    MOI_under = st.text_input('Please type in MOI under threshold')
-    MOI_upper = st.text_input('Please type in MOI upper threshold')
-    test_int_input(MOI_under)
-    test_int_input(MOI_upper)
+    MOI_under = st.text_input('Please type in MOI under threshold',value= 1000)
+    MOI_upper = st.text_input('Please type in MOI upper threshold', value= 1000)
+    # test_int_input(MOI_under)
+    # test_int_input(MOI_upper)
     MOI_input = [int(MOI_under), int(MOI_upper)]
 else:
-    MOI_input = st.text_input('Please type in MOI threshold')
-    test_int_input(MOI_input)
+    MOI_input = st.text_input('Please type in MOI threshold', value= 1000)
+    # test_int_input(MOI_input)
     MOI_input = int(MOI_input)
-
+st.write("Choose an article to view it across all markets")
 stock_overview = get_stock_overview(country_list= COUNTRY_LIST, MOI_threshold= MOI_input, operator= overview_operator)
 df_return, selected_row_std = create_AgGrid(stock_overview, button_key= 'stock_overview')
 st.download_button(
@@ -136,11 +157,25 @@ st.download_button(
         mime='csv'
     )
 
+selected_article = selected_row_std[0]['article_no']
+get_MOI_article([selected_article])
+
 
 view_type = st.radio(
         label= 'Choose view type:',
         options= ('by market', 'by article_no')
     )
+
+with st.expander('Explanation for each view type'):
+    st.write(r"""
+        This function provides two ways of viewing MOI of different articles. 
+        1. View by market:\
+            Enter market to view MOI of all articles in that market. The articles are divide into 4 Category: 
+            * STD, NEW, CEZ and EOL
+        2. View by article_no:\
+            Enter article_no to view MOI of te given article_no across all markets.
+    """)
+
 if view_type == 'by market':
     st.write(f"available markets: {', '.join(COUNTRY_LIST)}")
     country_code = st.text_input("Please type market/partnered warehouse in", 'ES')
@@ -169,16 +204,17 @@ if view_type == 'by market':
 
 elif view_type == 'by article_no':
     article_no_input = st.text_input("Please type article_no in", '11525')
-    try:
-        article_no_input = int(article_no_input)
-    except:
-        st.write("Article_no must be a number!")
-    article_stock = get_info_article(article_no_input)
-    st.header(f"{article_no_input} across all markets")
-    df_return, selected_row_std = create_AgGrid(article_stock)
-    st.download_button(
-            label= f'Download {article_no_input} across all markets',
-            data = pd.DataFrame.from_dict(df_return['data']).to_csv(index= False).encode('utf-8'),
-            file_name= f'{article_no_input}_inventory_all_markets.csv',
-            mime='csv'
-        )
+    # try:
+    #     article_no_input = int(article_no_input)
+    # except:
+    #     st.write("Article_no must be a number!")
+    get_MOI_article(article_nos=[article_no_input])
+    # article_stock = get_info_article(article_no_input)
+    # st.header(f"{article_no_input} across all markets")
+    # df_return, selected_row_std = create_AgGrid(article_stock)
+    # st.download_button(
+    #         label= f'Download {article_no_input} across all markets',
+    #         data = pd.DataFrame.from_dict(df_return['data']).to_csv(index= False).encode('utf-8'),
+    #         file_name= f'{article_no_input}_inventory_all_markets.csv',
+    #         mime='csv'
+    #     )
