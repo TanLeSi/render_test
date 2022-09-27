@@ -5,4 +5,5 @@ backgroundColor = "#070f11"
 secondaryBackgroundColor = "#586e75"
 textColor = "#fff"
 
+[browser]
 serverAddress = "0.0.0.0"
