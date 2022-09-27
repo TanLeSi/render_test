@@ -5,3 +5,8 @@ backgroundColor = "#070f11"
 secondaryBackgroundColor = "#586e75"
 textColor = "#fff"
 
+[server]
+headless = true
+enableCORS=false
+port = 8501
+address = "0.0.0.0"
