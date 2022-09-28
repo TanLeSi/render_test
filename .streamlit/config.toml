@@ -1,3 +1,4 @@
 [server]
 
+headless = False
 port = 8502
