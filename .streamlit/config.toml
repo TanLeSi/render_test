@@ -1,4 +1,4 @@
 [server]
 
-headless = false
+headless = true
 port = 8502
