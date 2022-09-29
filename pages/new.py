@@ -2,24 +2,15 @@ import streamlit as st
 import pandas as pd 
 import sys, os
 from pathlib import Path
-from functions import create_AgGrid, file_download, get_movement, gen_article, create_plot
-from article import Article
+from functions import create_AgGrid, file_download, get_movement, gen_article, create_plot, rm_mydb
 input = Path().cwd().parents[0] / 'excel_files'
 import plotly.express as px
 from pathlib import Path
 from datetime import datetime
-from sqlalchemy import create_engine
 direc = Path().cwd()
 sys.path.append(f'{direc.parents[0]}')
-from urllib.parse import quote
-# from dotenv import load_dotenv
-# load_dotenv()
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
+
+
 
 TODAY = datetime.today().strftime('%Y-%m-%d')
 STARTING_PERIOD = ['2022-01-01', str(TODAY)]

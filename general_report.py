@@ -5,16 +5,10 @@ from sqlalchemy import create_engine
 import pandas as pd
 from urllib.parse import quote
 from datetime import datetime, date, timedelta
-from functions import create_AgGrid, file_download
+from functions import create_AgGrid, file_download, rm_mydb
 # from dotenv import load_dotenv
 # load_dotenv()
 
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
 
 TODAY = date.today()
 if TODAY.weekday() == 6:

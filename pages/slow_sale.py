@@ -2,22 +2,11 @@ import streamlit as st
 import pandas as pd 
 import sys, os
 import plotly.express as px
-from article import Article
 from datetime import datetime
 from pathlib import Path
 direc = Path().cwd()
 sys.path.append(f'{direc.parents[0]}')
-from functions import file_download, create_AgGrid, gen_article, get_movement, create_plot
-from sqlalchemy import create_engine
-from urllib.parse import quote
-# from dotenv import load_dotenv
-# load_dotenv()
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
+from functions import file_download, create_AgGrid, gen_article, get_movement, create_plot, rm_mydb
 
 TODAY = datetime.today().strftime('%Y-%m-%d')
 TODAY = str(TODAY)

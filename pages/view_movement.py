@@ -8,19 +8,8 @@ sys.path.append(f'{direc.parents[0]}')
 pd.options.mode.chained_assignment = None
 import plotly.express as px
 from plotly.subplots import make_subplots
-from article import Article
 from datetime import datetime, timedelta
-from functions import get_movement, gen_article
-from sqlalchemy import create_engine
-from urllib.parse import quote
-# from dotenv import load_dotenv
-# load_dotenv()
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
+from functions import get_movement, gen_article, rm_mydb
 
 
 TODAY = datetime.today().strftime('%Y-%m-%d')

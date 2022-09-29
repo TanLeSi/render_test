@@ -9,16 +9,8 @@ from sqlalchemy import create_engine
 from pathlib import Path
 direc = Path().cwd()
 sys.path.append(f'{direc.parents[0]}')
-from functions import file_download, create_AgGrid, gen_article, get_movement, create_plot
-# from dotenv import load_dotenv
-# load_dotenv()
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
+from functions import file_download, create_AgGrid, rm_mydb
 
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
 
 pd.options.display.float_format = "{:,.2f}".format
 
