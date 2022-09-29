@@ -141,7 +141,7 @@ else:
     MOI_input = int(MOI_input)
 st.write("Choose an article to view it across all markets")
 stock_overview = get_stock_overview(country_list= COUNTRY_LIST, MOI_threshold= MOI_input, operator= overview_operator)
-df_return, selected_row_std = create_AgGrid(stock_overview, button_key= 'stock_overview')
+df_return, selected_row_std = create_AgGrid(stock_overview, button_key= f'{MOI_input}')
 st.download_button(
         label= f'Download overview MOI_{MOI_input}',
         data = pd.DataFrame.from_dict(df_return['data']).to_csv(index= False).encode('utf-8'),
