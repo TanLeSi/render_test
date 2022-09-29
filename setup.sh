@@ -1,5 +1,5 @@
 rm ~/.streamlit/config.toml
-
+mkdir ./.streamlit/
 echo "\
 [server]\n\
 headless = true\n\
