@@ -40,7 +40,7 @@ def get_slow_sale(start: str, end: str):
     return slow_sale_general.fillna(-9999)
 
 slow_sale = get_slow_sale(start= STARTING_PERIOD[0], end= STARTING_PERIOD[1])
-df, selected_row = create_AgGrid(slow_sale[['ItemCode', 'sum_quantity', 'model', 'moq', 'fullfill_percent']].round({'fullfill_percent':2}))
+df, selected_row = create_AgGrid(slow_sale[['ItemCode', 'sum_quantity', 'model', 'moq', 'fullfill_percent']].round({'fullfill_percent':2}), selection_mode= True)
 st.markdown(file_download(slow_sale, name='slow_sale'), unsafe_allow_html= True)
 try:
     chosen_article = int(selected_row[0]['ItemCode'])

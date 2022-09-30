@@ -22,7 +22,7 @@ TODAY = datetime.strftime(date.today() - TIME_DELTA,'%Y-%m-%d')
 LAST_WEEK = date.today()-TIME_DELTA
 TODAY = str(TODAY)
 LAST_WEEK = str(LAST_WEEK.strftime('%Y-%m-%d'))
-STARTING_PERIOD = ['2022-07-01', '2022-07-31']
+STARTING_PERIOD = ['2022-07-01', TODAY]
 BOX_PALLETE = 26
 MONTH = {
     'January': ['2022-01-01', '2022-01-31'],

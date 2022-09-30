@@ -154,7 +154,7 @@ def create_subplot(col: int, layout: list, total_movement: pd.DataFrame):
     subplot_fig = make_subplots(
         rows = int(np.ceil(len(layout)/col)),
         cols= col,
-        vertical_spacing= 0.03,
+        vertical_spacing= 0.05,
         horizontal_spacing= 0.1,
         subplot_titles= layout,
         # print_grid= True

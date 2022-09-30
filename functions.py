@@ -6,10 +6,10 @@ import base64, os
 import pandas as pd 
 import plotly.express as px
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, true
 from urllib.parse import quote
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 rm_port = os.getenv('port')
 rm_dbname = os.getenv('dbname')
@@ -21,19 +21,24 @@ TODAY = datetime.today().strftime('%Y-%m-%d')
 TODAY = str(TODAY)
 
 
-def create_AgGrid(df, button_key= 0):
+def create_AgGrid(df, button_key= 0, selection_mode= False):
     gd = GridOptionsBuilder.from_dataframe(df)
     gd.configure_pagination(enabled= True, paginationAutoPageSize= False, paginationPageSize= 20)
-    gd.configure_side_bar()
-    sel_mode = st.radio('Selection Type', options= ['single'], key= button_key)
-    gd.configure_selection(selection_mode= sel_mode, use_checkbox= True)
+    # gd.configure_side_bar()
+    if not selection_mode:
+        gd.configure_selection("disabled")
+    else:
+        sel_mode = st.radio('Selection Type', options= ['single'], index= 0, key= f"{button_key} + 'sel'")
+        gd.configure_selection(selection_mode= sel_mode, use_checkbox= True, pre_selected_rows= [0])
+
     gridoptions = gd.build()
     grid_table = AgGrid(df, gridOptions= gridoptions,
-                        update_mode= GridUpdateMode.MODEL_CHANGED,
-                        theme= 'balham',
+                        update_mode= GridUpdateMode.SELECTION_CHANGED,
+                        theme= 'streamlit',
                         fit_columns_on_grid_load= True,
                         key= button_key,
-                        reload_data= True)
+                        reload_data= True,
+                        )
     sel_row = grid_table['selected_rows']
     return grid_table, sel_row
 

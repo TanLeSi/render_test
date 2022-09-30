@@ -58,7 +58,7 @@ def get_new():
 new_eta, new_slow = get_new()
 
 st.markdown('<h3>NEW products with their first appearance date</h3>', unsafe_allow_html= True)
-df, selected_row = create_AgGrid(new_eta)
+df, selected_row = create_AgGrid(new_eta, selection_mode= True)
 # df1, selected_row1 = create_AgGrid(new, button_key= 1)
 
 
@@ -70,7 +70,7 @@ if len(selected_row) == 0:
     st.stop()
 else:
     chosen_article_all = int(selected_row[0]['article_no'])
-
+    movement, originated_value = get_movement(start=STARTING_PERIOD[0], end= STARTING_PERIOD[1], article_no= chosen_article_all)
 st.markdown("<h3>NEW products that have slow sales record</h3>", unsafe_allow_html= True)
 
 new_slow['criterium'] = (new_slow['sum_outbound']*-1) - (new_slow['moq']/12)
@@ -84,8 +84,7 @@ if st.session_state['view_slow']:
     )
     chosen_article_slow = int(chosen_article_slow.split(' ')[0])
     movement, originated_value = get_movement(start=STARTING_PERIOD[0], end= STARTING_PERIOD[1], article_no= chosen_article_slow)
-else:
-    movement, originated_value = get_movement(start=STARTING_PERIOD[0], end= STARTING_PERIOD[1], article_no= selected_row[0]['article_no'])
+
 
 current_article = gen_article(movement)
 bar_data = current_article.create_bar_data(initial_value= originated_value)
@@ -93,28 +92,3 @@ fig_qnt_traceback = create_plot(df= bar_data)
 fig_qnt_traceback.update_layout(title= f"<b>Movement of {current_article.article_no} from {STARTING_PERIOD[0]} to {STARTING_PERIOD[1]}</b>"
                                  ,yaxis_title = 'Quantity', hovermode = 'x', xaxis_title = 'date')
 st.plotly_chart(fig_qnt_traceback, use_container_width= True)
-# current_article = Article(article_no= selected_row['ItemCode'].values[0],
-#                         sum_quantity= selected_row['sum_quantity'].values[0],
-#                         shipments= selected_row['shipments'].values[0],
-#                         outbound_date= selected_row['date'].values[0],
-#                         outbound_qnt= selected_row['outbound_qnt'].values[0]
-#                         )
-# if selected_row['inbound_date'].values[0] != -9999:
-#     current_article.inbound_date = current_article.split_str(selected_row['inbound_date'].values[0])
-#     current_article.inbound_qnt = current_article.split_str(selected_row['inbound_quantity'].values[0],convert_int= True)
-# bar_data = current_article.create_bar_data()
-# print(bar_data)
-# min_y = min(bar_data['outbound']) - 50
-# max_y = max([max(bar_data['inbound']),max(bar_data['sum_quantity'])]) +15
-# fig_qnt_traceback = px.bar(
-#     bar_data,
-#     x= bar_data['date'],
-#     y= ['sum_quantity','outbound', 'inbound'],
-#     # hover_name= ['sum_quantity','outbound', 'inbound'],
-#     text_auto= True,
-#     title= f"<b>Movement of {current_article.article_no} </b>"
-# )
-# fig_qnt_traceback.update_layout(yaxis_title = 'Quantity', hovermode = 'x', xaxis_title = 'date')
-# fig_qnt_traceback.update_xaxes(type = 'category')
-# fig_qnt_traceback.update_yaxes(range=(min_y, max_y))
-# st.plotly_chart(fig_qnt_traceback, use_container_width= True)
