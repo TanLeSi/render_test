@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st 
 import os,sys
 from pathlib import Path
+import sqlalchemy
 direc = Path().cwd()
 sys.path.append(f'{direc.parents[0]}')
 from functions import file_download, create_AgGrid, rm_mydb
@@ -59,7 +60,7 @@ def get_info_article(article_no: int):
         stock_all = pd.concat([stock_all,each_stock], ignore_index= True)
     return mod_stock(stock_all)
 
-
+@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def get_stock_overview(country_list: list[str], MOI_threshold: int, operator: str):
     too_much = pd.DataFrame()
     for each_country in country_list:    

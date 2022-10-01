@@ -6,17 +6,21 @@ import base64, os
 import pandas as pd 
 import plotly.express as px
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine, true
+from sqlalchemy import create_engine
 from urllib.parse import quote
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
-rm_port = os.getenv('port')
-rm_dbname = os.getenv('dbname')
-rm_host = os.getenv('host')
-rm_user = os.getenv('user')
-rm_password = os.getenv('password')
-rm_mydb = create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
+@st.cache(allow_output_mutation=True)
+def create_db_connection():
+    rm_port = os.getenv('port')
+    rm_dbname = os.getenv('dbname')
+    rm_host = os.getenv('host')
+    rm_user = os.getenv('user')
+    rm_password = os.getenv('password')
+    return create_engine('mysql+pymysql://' + rm_user + ':%s@' %quote(rm_password) + rm_host + ':' + str(rm_port) + '/' + rm_dbname, echo=False)
+
+rm_mydb = create_db_connection()
 TODAY = datetime.today().strftime('%Y-%m-%d')
 TODAY = str(TODAY)
 
