@@ -44,7 +44,8 @@ def create_download_button(df: pd.DataFrame, download_header: str, file_name: st
             file_name= f'{file_name}.csv',
             mime='csv'
         )
-
+        
+@st.cache(hash_funcs={sqlalchemy.engine.base.Engine: id})
 def get_info_article(article_no: int):
     stock_all = pd.DataFrame()
     for each_country in COUNTRY_LIST:

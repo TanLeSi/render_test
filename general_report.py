@@ -9,6 +9,9 @@ from functions import create_AgGrid, file_download, rm_mydb
 # from dotenv import load_dotenv
 # load_dotenv()
 
+st.set_page_config(page_title= 'Inventory Report',
+                    layout= 'wide'
+)
 
 TODAY = date.today()
 if TODAY.weekday() == 6:
@@ -38,9 +41,7 @@ MONTH = {
     'November': ['2022-11-01', '2022-11-30'],
     'October': ['2022-12-01', '2022-12-31'],
 }
-st.set_page_config(page_title= 'Inventory Report',
-                    layout= 'wide'
-)
+
 
 st.markdown('<h1 style="text-align:center">Inventory Report </h1>', unsafe_allow_html= True)
 
