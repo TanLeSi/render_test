@@ -1,4 +1,3 @@
-import re
 import streamlit as st
 st.set_page_config(page_title= 'Inventory Report',
                     layout= 'wide'
@@ -7,11 +6,10 @@ import os, pendulum, calendar
 import plotly.express as px
 from sqlalchemy import create_engine
 import pandas as pd
-from urllib.parse import quote
 from datetime import datetime, date, timedelta
 # from dotenv import load_dotenv
 from functions import create_AgGrid, file_download, rm_mydb
-from st_aggrid import GridUpdateMode
+
 # load_dotenv()
 
 TODAY = date.today()
