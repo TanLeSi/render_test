@@ -174,8 +174,18 @@ if view_markets:
         """)
 
     if view_type == 'by market':
-        st.write(f"available markets: {', '.join(COUNTRY_LIST)}")
+        st.write(f"available markets: {', '.join(COUNTRY_LIST)} or type ALL to view all markets")
         country_code = st.text_input("Please type market/partnered warehouse in", 'ES')
+        if country_code.lower() == 'all':
+            stock_planner_all = pd.DataFrame()
+            for each_country in COUNTRY_LIST:
+                temp = get_stock_planner(country_code= each_country)
+                stock_planner_all = pd.concat([stock_planner_all, temp], ignore_index= True)
+            create_download_button(df=stock_planner_all,
+                            download_header=f"Download Amazon Inventory for all markets",
+                            file_name=f"AMZ_INV_all_markets",
+                            button_key=f"AMZ_INV_all")
+            st.stop()
         if country_code not in COUNTRY_LIST:
             st.warning(f'{country_code} is not acceptable as a market')
             st.stop()

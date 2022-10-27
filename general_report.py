@@ -7,11 +7,11 @@ from urllib.parse import quote
 from datetime import datetime, date, timedelta
 from functions import create_AgGrid, file_download, rm_mydb
 # from dotenv import load_dotenv
-# load_dotenv()
 
 st.set_page_config(page_title= 'Inventory Report',
                     layout= 'wide'
 )
+# load_dotenv()
 
 TODAY = date.today()
 if TODAY.weekday() == 6:
