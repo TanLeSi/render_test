@@ -7,10 +7,10 @@ import plotly.express as px
 from sqlalchemy import create_engine
 import pandas as pd
 from datetime import datetime, date, timedelta
-# from dotenv import load_dotenv
 from functions import create_AgGrid, file_download, rm_mydb
-
+# from dotenv import load_dotenv
 # load_dotenv()
+
 
 TODAY = date.today()
 if TODAY.weekday() == 6:
@@ -56,23 +56,23 @@ def get_outbound_percent():
     outbound_sum = OUTBOUND['Qty'].sum()*-1
     return OUTBOUND, round(outbound_sum/BOX_PALLETE/5,2)
 
-OUTBOUND, avrg_outbound = get_outbound_percent()
+# OUTBOUND, avrg_outbound = get_outbound_percent()
 
-outbound_percent = pd.DataFrame(columns=['date', 'CEZ', 'NEW', 'SUM'])
-counter = 0
-for each in OUTBOUND['Posting_Date'].unique():
-    new_percent = OUTBOUND[(OUTBOUND['status'] == 'NEW') & (OUTBOUND['Posting_Date'] == each)]['Qty'].sum()*-1
-    # new_percent = new_percent / OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum() * 100
-    cez_percent = OUTBOUND[(OUTBOUND['factory'] == 'CEZ') & (OUTBOUND['Posting_Date'] == each)]['Qty'].sum()*-1
-    # cez_percent = cez_percent / OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum() * 100
-    if cez_percent < 0.01:
-        cez_percent = 0
-    if OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum()*-1 != 0:
-        outbound_percent.loc[counter, 'CEZ'] = cez_percent
-        outbound_percent.loc[counter, 'NEW'] = new_percent
-        outbound_percent.loc[counter, 'date'] = each
-        outbound_percent.loc[counter, 'SUM'] = OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum()*-1
-        counter += 1
+# outbound_percent = pd.DataFrame(columns=['date', 'CEZ', 'NEW', 'SUM'])
+# counter = 0
+# for each in OUTBOUND['Posting_Date'].unique():
+#     new_percent = OUTBOUND[(OUTBOUND['status'] == 'NEW') & (OUTBOUND['Posting_Date'] == each)]['Qty'].sum()*-1
+#     # new_percent = new_percent / OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum() * 100
+#     cez_percent = OUTBOUND[(OUTBOUND['factory'] == 'CEZ') & (OUTBOUND['Posting_Date'] == each)]['Qty'].sum()*-1
+#     # cez_percent = cez_percent / OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum() * 100
+#     if cez_percent < 0.01:
+#         cez_percent = 0
+#     if OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum()*-1 != 0:
+#         outbound_percent.loc[counter, 'CEZ'] = cez_percent
+#         outbound_percent.loc[counter, 'NEW'] = new_percent
+#         outbound_percent.loc[counter, 'date'] = each
+#         outbound_percent.loc[counter, 'SUM'] = OUTBOUND[OUTBOUND['Posting_Date'] == each]['Qty'].sum()*-1
+#         counter += 1
 
 
 def get_capacity():
@@ -81,24 +81,17 @@ def get_capacity():
 
 capacity = get_capacity()
 capacity['EOL_occupied_units'] = capacity['total_units'] - capacity['normal_units'] - capacity['cez_occupied_units']
-CEZ_occupation = capacity.loc[capacity['date'] == TODAY,'cez_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
-NEW_occupation = capacity.loc[capacity['date'] == TODAY,'new_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
-EOL_occupation = capacity.loc[capacity['date'] == TODAY,'EOL_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
+# CEZ_occupation = capacity.loc[capacity['date'] == TODAY,'cez_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
+# NEW_occupation = capacity.loc[capacity['date'] == TODAY,'new_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
+# EOL_occupation = capacity.loc[capacity['date'] == TODAY,'EOL_occupied_units'].values[0]/capacity.loc[capacity['date'] == TODAY,'total_units'].values[0]*100
 
-st.markdown(f"<h2> CEZ takes {round(CEZ_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
-st.markdown(f"<h2> CEZ takes {round(outbound_percent['CEZ'].sum()/outbound_percent['SUM'].sum()*100,2)}% from total sales</h2>", unsafe_allow_html= True)
-st.markdown(f"<h2> NEW takes {round(NEW_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
-st.markdown(f"<h2> NEW takes {round(outbound_percent['NEW'].sum()/outbound_percent['SUM'].sum()*100,2)}% from total sales</h2>", unsafe_allow_html= True)
-st.markdown(f"<h2> EOL takes {round(EOL_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
+# st.markdown(f"<h2> CEZ takes {round(CEZ_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
+# st.markdown(f"<h2> CEZ takes {round(outbound_percent['CEZ'].sum()/outbound_percent['SUM'].sum()*100,2)}% from total sales</h2>", unsafe_allow_html= True)
+# st.markdown(f"<h2> NEW takes {round(NEW_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
+# st.markdown(f"<h2> NEW takes {round(outbound_percent['NEW'].sum()/outbound_percent['SUM'].sum()*100,2)}% from total sales</h2>", unsafe_allow_html= True)
+# st.markdown(f"<h2> EOL takes {round(EOL_occupation,2)}% from total warehouse capacity</h2>", unsafe_allow_html= True)
 
-def get_inbound() -> float:
-    select_query = f"""
-    select distinct ETA, sum(Qty) as sum_inbound from po_delivery_static where ETA >= TODAY and destination = 0 and ship_way = 0
-    group by ETA
-    """
-    SUM_inbound = pd.read_sql_query(select_query, con= rm_mydb)
-    convert_to_pallete = SUM_inbound['sum_inbound'].values[0] / BOX_PALLETE
-    return round(convert_to_pallete,2)
+
 
 
 
@@ -118,16 +111,16 @@ fig_capacity.update_layout(yaxis_title = 'Capacity percent', hovermode = 'x', xa
 st.plotly_chart(fig_capacity, use_container_width= True)
 
 
-fig_outbound = px.line(
-    outbound_percent,
-    x= outbound_percent['date'],
-    y= ['SUM'],
-    # hover_name= ['sum_quantity','outbound', 'inbound'],
-    markers= True,
-    title= f"<b>Outbound daily</b>"
-)
-fig_outbound.update_layout(yaxis_title = 'Pieces', hovermode = 'x', xaxis_title = 'date')
-st.plotly_chart(fig_outbound, use_container_width= True)
+# fig_outbound = px.line(
+#     outbound_percent,
+#     x= outbound_percent['date'],
+#     y= ['SUM'],
+#     # hover_name= ['sum_quantity','outbound', 'inbound'],
+#     markers= True,
+#     title= f"<b>Outbound daily</b>"
+# )
+# fig_outbound.update_layout(yaxis_title = 'Pieces', hovermode = 'x', xaxis_title = 'date')
+# st.plotly_chart(fig_outbound, use_container_width= True)
 
 st.markdown(f"<h1>Summary of inbound</h1>", unsafe_allow_html= True)
 month_index = int(str(TODAY).split('-')[1])
