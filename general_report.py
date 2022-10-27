@@ -1,16 +1,17 @@
+import re
 import streamlit as st
-import os
+st.set_page_config(page_title= 'Inventory Report',
+                    layout= 'wide'
+)
+import os, pendulum, calendar
 import plotly.express as px
 from sqlalchemy import create_engine
 import pandas as pd
 from urllib.parse import quote
 from datetime import datetime, date, timedelta
-from functions import create_AgGrid, file_download, rm_mydb
 # from dotenv import load_dotenv
-
-st.set_page_config(page_title= 'Inventory Report',
-                    layout= 'wide'
-)
+from functions import create_AgGrid, file_download, rm_mydb
+from st_aggrid import GridUpdateMode
 # load_dotenv()
 
 TODAY = date.today()
@@ -27,21 +28,20 @@ TODAY = str(TODAY)
 LAST_WEEK = str(LAST_WEEK.strftime('%Y-%m-%d'))
 STARTING_PERIOD = ['2022-07-01', TODAY]
 BOX_PALLETE = 26
-MONTH = {
-    'January': ['2022-01-01', '2022-01-31'],
-    'February': ['2022-02-01', '2022-02-28'],
-    'March': ['2022-03-01', '2022-03-31'],
-    'April': ['2022-04-01', '2022-04-30'],
-    'May': ['2022-05-01', '2022-05-31'],
-    'June': ['2022-06-01', '2022-06-30'],
-    'Juli': ['2022-07-01', '2022-07-31'],
-    'August': ['2022-08-01', '2022-08-31'],
-    'September': ['2022-09-01', '2022-09-30'],
-    'October': ['2022-10-01', '2022-10-31'],
-    'November': ['2022-11-01', '2022-11-30'],
-    'October': ['2022-12-01', '2022-12-31'],
-}
 
+
+def get_month(current_year: int):
+    result = {}
+    for i in range(1,13):
+        if i<10:
+            temp_date = f"{current_year}-0{i}-01"
+        else:
+            temp_date = f"{current_year}-{i}-01"
+        temp_date = pendulum.parse(temp_date)
+        result[f"{calendar.month_name[i]}"] = [temp_date.start_of("month").to_datetime_string().split(" ")[0],temp_date.end_of("month").to_datetime_string().split(" ")[0]]
+    return result
+
+MONTH = get_month(current_year= pendulum.today().year)
 
 st.markdown('<h1 style="text-align:center">Inventory Report </h1>', unsafe_allow_html= True)
 
@@ -136,30 +136,32 @@ month_index = int(str(TODAY).split('-')[1])
 selected_months = st.multiselect(
     label= 'Select time period',
     options= list(MONTH.keys()),
-    default= list(MONTH.keys())[month_index-2:month_index]
+    default= list(MONTH.keys())[month_index-1]
 )
 
-columns = ['ItemCode', 'model']
+columns = ['ItemCode', 'model', 'factory']
 columns.extend([each for each in selected_months])
 result = pd.DataFrame(columns= columns)
 for each_month in selected_months:    
     temp_result = pd.DataFrame(columns= columns)
+    temp_date = MONTH[f"{each_month}"]
     select_query = f"""
-        SELECT ItemCode, model, sum(Qty) as {each_month}
+        SELECT audit.ItemCode, PDB.model, PDB.factory, cast(sum(Qty) as UNSIGNED) as {each_month}
         FROM `InventoryAuditReport` audit
         left join product_database PDB
         on PDB.article_no = audit.ItemCode
-        where Document = 'GoodsReceiptPO' and audit.Warehouse = '40549DUS'
-        and Posting_Date between '{MONTH[f"{each_month}"][0]}' and '{MONTH[f"{each_month}"][1]}'
-        group by ItemCode;
+        where audit.Document = 'GoodsReceiptPO' and audit.Warehouse = '40549DUS'
+        and audit.Posting_Date between '{MONTH[f"{each_month}"][0]}' and '{MONTH[f"{each_month}"][1]}'
+        group by audit.ItemCode;
     """
     # print(select_query)
     temp = pd.read_sql_query(select_query, con=rm_mydb)
-    temp_result[['ItemCode', 'model', f"{each_month}"]] = temp
+    temp_result[['ItemCode', 'model', 'factory', f"{each_month}"]] = temp
     result = pd.concat([result,temp_result], ignore_index= True)
 
-agg_dict = {each:'first' if each == 'model' else 'sum' for each in columns[1:]}
+agg_dict = {each:'first' if each in ['model','factory'] else 'sum' for each in columns[1:]}
 result = result.groupby(by= ['ItemCode'], as_index= False).agg(agg_dict)
-df, selected_row = create_AgGrid(result)
+st.write(result)
+# df, selected_row = create_AgGrid(result, update_trigger=GridUpdateMode.GRID_CHANGED)
 file_name = str(selected_months).replace('[','').replace(']','').replace("'",'')
 st.markdown(file_download(result, name=f"inbound_sum_for {file_name}"), unsafe_allow_html= True)

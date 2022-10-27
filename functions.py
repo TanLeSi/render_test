@@ -25,7 +25,7 @@ TODAY = datetime.today().strftime('%Y-%m-%d')
 TODAY = str(TODAY)
 
 
-def create_AgGrid(df, button_key= 0, selection_mode= False):
+def create_AgGrid(df, button_key= 0, selection_mode= False, update_trigger= GridUpdateMode.SELECTION_CHANGED):
     gd = GridOptionsBuilder.from_dataframe(df)
     gd.configure_pagination(enabled= True, paginationAutoPageSize= False, paginationPageSize= 20)
     # gd.configure_side_bar()
@@ -37,7 +37,7 @@ def create_AgGrid(df, button_key= 0, selection_mode= False):
 
     gridoptions = gd.build()
     grid_table = AgGrid(df, gridOptions= gridoptions,
-                        update_mode= GridUpdateMode.SELECTION_CHANGED,
+                        update_mode= update_trigger,
                         theme= 'streamlit',
                         fit_columns_on_grid_load= True,
                         key= button_key,
