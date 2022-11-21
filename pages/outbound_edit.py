@@ -22,15 +22,15 @@ def get_status_order(order_number: int):
     pending_order['Qty'] = pending_order['Qty'].astype(int)
     return shipped_order[['Document_Number','Document', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date', 'loading_status']], pending_order[['Document_Number','Document', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date', 'loading_status']]
 
-def get_order_audit(order_number: int):
-        
+def get_order_audit(order_number: int):        
     select_query = f"select * from InventoryAuditReport where Document_Number = {order_number}"
     audit_order = pd.read_sql_query(select_query, con= rm_mydb)
     if order_number < 300000:
         posting_dates = audit_order.sort_values('Posting_Date', ascending= False).Posting_Date.unique()
+        return audit_order[audit_order['Posting_Date'] == posting_dates[0]][['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
     audit_order['Qty'] = audit_order['Qty'].astype(int)
-    return audit_order[audit_order['Posting_Date'] == posting_dates[0]][['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
-
+    return audit_order[['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
+    
 def add_order(order_number: int, purpose: str):
     select_query = f"select * from outbound_edit_WHS where Document_Number = {order_number} and action = '{purpose}'"
     temp  = pd.read_sql_query(select_query,con= rm_mydb)
