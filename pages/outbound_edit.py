@@ -79,15 +79,16 @@ if options == ADD:
                 st.error("Something's wrong")
 
 elif options == BRING_BACK:
+    audit_orders = get_order_audit(order_number)
     if pending_order.shape[0]:  
             st.info("This order is already available, no need to bring it back")
             st.write(pending_order)
             st.stop()
-    elif shipped_order.shape[0]:
+    elif shipped_order.shape[0] and (shipped_order.Document.values[0] ==audit_orders.Document.values[0]):
         st.warning("This order is already shipped. Cannot bring back anymore. Please check")
         st.write(shipped_order)
         st.stop()
-    st.write(get_order_audit(order_number))
+    st.write(audit_orders)
     if st.button("Bring back this order"):
         if update_order(order_number, purpose_search= ADD, purpose_new= BRING_BACK):
             st.success('Successfully bring back order')
