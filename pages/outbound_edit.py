@@ -30,7 +30,7 @@ def get_order_audit(order_number: int):
         return audit_order[audit_order['Posting_Date'] == posting_dates[0]][['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
     audit_order['Qty'] = audit_order['Qty'].astype(int)
     return audit_order[['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
-    
+
 def add_order(order_number: int, purpose: str):
     select_query = f"select * from outbound_edit_WHS where Document_Number = {order_number} and action = '{purpose}'"
     temp  = pd.read_sql_query(select_query,con= rm_mydb)
@@ -79,11 +79,11 @@ if options == ADD:
                 st.error("Something's wrong")
 
 elif options == BRING_BACK:
-    if pending_order.shape[0] and (shipped_order['Document'].values[0] == pending_order['Document'].values[0]): 
-        st.info("This order is already available, no need to bring it back")
-        st.write(pending_order)
-        st.stop()
-    elif shipped_order.shape[0] and (shipped_order['Document'].values[0] == pending_order['Document'].values[0]):
+    if pending_order.shape[0]:  
+            st.info("This order is already available, no need to bring it back")
+            st.write(pending_order)
+            st.stop()
+    elif shipped_order.shape[0]:
         st.warning("This order is already shipped. Cannot bring back anymore. Please check")
         st.write(shipped_order)
         st.stop()
