@@ -46,7 +46,7 @@ def update_order(order_number:int, purpose_search: str, purpose_new: str):
     if not temp.shape[0]:
         return 0
     with rm_mydb.connect() as connection:
-        insert_query = f"update outbound_edit_WHS set date_edit = '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', action= '{purpose_new}' where Document_Number = {order_number} and action = '{ADD}'"
+        insert_query = f"update outbound_edit_WHS set date_edit = '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', action= '{purpose_new}' where Document_Number = {order_number} and action = '{purpose_search}'"
         connection.execute(insert_query)
         return 1
         
