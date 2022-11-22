@@ -37,7 +37,7 @@ def add_order(order_number: int, purpose: str, order: pd.DataFrame):
     document = order['Document'].unique()[0]
     if not temp.shape[0]:
         with rm_mydb.connect() as connection:
-            insert_query = f"INSERT INTO outbound_edit_WHS (Document_Number,Document,date_edit, action) values ({order_number},{document}, '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', '{purpose}')"
+            insert_query = f"INSERT INTO outbound_edit_WHS (Document_Number,Document,date_edit, action) values ({order_number},'{document}', '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', '{purpose}')"
             connection.execute(insert_query)
 
 
