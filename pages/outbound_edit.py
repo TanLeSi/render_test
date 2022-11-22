@@ -27,16 +27,17 @@ def get_order_audit(order_number: int):
     audit_order = pd.read_sql_query(select_query, con= rm_mydb)
     if order_number < 300000:
         posting_dates = audit_order.sort_values('Posting_Date', ascending= False).Posting_Date.unique()
-        return audit_order[audit_order['Posting_Date'] == posting_dates[0]][['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
+        return audit_order[audit_order['Posting_Date'] == posting_dates[0]][['Document_Number', 'Document', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
     audit_order['Qty'] = audit_order['Qty'].astype(int)
-    return audit_order[['Document_Number', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
+    return audit_order[['Document_Number', 'Document', 'ItemCode', 'ItemName', 'Qty', 'Posting_Date']]
 
-def add_order(order_number: int, purpose: str):
+def add_order(order_number: int, purpose: str, order: pd.DataFrame):
     select_query = f"select * from outbound_edit_WHS where Document_Number = {order_number} and action = '{purpose}'"
     temp  = pd.read_sql_query(select_query,con= rm_mydb)
+    document = order['Document'].unique()[0]
     if not temp.shape[0]:
         with rm_mydb.connect() as connection:
-            insert_query = f"INSERT INTO outbound_edit_WHS (Document_Number,date_edit, action) values ({order_number}, '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', '{purpose}')"
+            insert_query = f"INSERT INTO outbound_edit_WHS (Document_Number,Document,date_edit, action) values ({order_number},{document}, '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', '{purpose}')"
             connection.execute(insert_query)
 
 
@@ -61,22 +62,24 @@ except:
     st.stop()
 shipped_order, pending_order = get_status_order(order_number)
 if options == ADD:
-    if shipped_order.shape[0] and (shipped_order['Document'].values[0] == pending_order['Document'].values[0]): 
-        st.header('Shipped order')
-        st.warning("This order was already shipped")
-        st.write(shipped_order)
-        st.stop()
+    if shipped_order.shape[0] and pending_order.shape[0]: 
+        if (shipped_order['Document'].values[0] == pending_order['Document'].values[0]): 
+            st.header('Shipped order')
+            st.warning("This order was already shipped")
+            st.write(shipped_order)
+            st.stop()
     st.header('Pending order')
     st.write(pending_order)
-    if st.button("Cancel this order"):
-        if update_order(order_number, purpose_search= BRING_BACK, purpose_new= ADD):
-            st.success('Successfully added cancelled order')
-        else:
-            try:
-                add_order(order_number, purpose= ADD)
-                st.success('Successfully bring back order')
-            except:
-                st.error("Something's wrong")
+    if pending_order.shape[0]:
+        if st.button("Cancel this order"):
+            if update_order(order_number, purpose_search= BRING_BACK, purpose_new= ADD):
+                st.success('Successfully added cancelled order')
+            else:
+                try:
+                    add_order(order_number, purpose= ADD, order= pending_order)
+                    st.success('Successfully added cancelled order')
+                except:
+                    st.error("Something's wrong")
 
 elif options == BRING_BACK:
     audit_orders = get_order_audit(order_number)
@@ -84,17 +87,18 @@ elif options == BRING_BACK:
             st.info("This order is already available, no need to bring it back")
             st.write(pending_order)
             st.stop()
-    elif shipped_order.shape[0] and (shipped_order.Document.values[0] ==audit_orders.Document.values[0]):
-        st.warning("This order is already shipped. Cannot bring back anymore. Please check")
-        st.write(shipped_order)
-        st.stop()
+    elif shipped_order.shape[0]:
+        if (shipped_order.Document.values[0] ==audit_orders.Document.values[0]):
+            st.warning("This order is already shipped. Cannot bring back anymore. Please check")
+            st.write(shipped_order)
+            st.stop()
     st.write(audit_orders)
     if st.button("Bring back this order"):
         if update_order(order_number, purpose_search= ADD, purpose_new= BRING_BACK):
             st.success('Successfully bring back order')
         else:
             try:
-                add_order(order_number, purpose= BRING_BACK)
+                add_order(order_number, purpose= BRING_BACK, order= audit_orders)
                 st.success('Successfully bring back order')
             except:
                 st.error("Something's wrong")
