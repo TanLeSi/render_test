@@ -2,10 +2,11 @@ import sys
 import pandas as pd
 import numpy as np
 from pathlib import Path
-sys.path.append(Path.cwd().parents[1])
+print(Path.cwd())
+sys.exit()
+# sys.path.append(Path.cwd().parents[1])
 from functions import rm_mydb
 import streamlit as st
-print(Path.cwd())
 
 BOX_QNT_COLUMN = 'CIN NO.&CIN'
 ARTICLE_NO_COLUMN = 'ITEM NO.& DESCRIPTION'
