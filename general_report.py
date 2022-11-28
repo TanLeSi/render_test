@@ -8,8 +8,8 @@ from sqlalchemy import create_engine
 import pandas as pd
 from datetime import datetime, date, timedelta
 from functions import create_AgGrid, file_download, rm_mydb
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 TODAY = date.today()

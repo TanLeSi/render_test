@@ -8,8 +8,8 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from urllib.parse import quote
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 @st.cache(allow_output_mutation=True)
 def create_db_connection():
