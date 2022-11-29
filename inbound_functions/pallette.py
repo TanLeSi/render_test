@@ -1,5 +1,5 @@
 import numpy as np
-from box import Box
+from inbound_functions.box import Box
 import pandas as pd
 
 

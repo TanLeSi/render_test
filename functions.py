@@ -38,7 +38,7 @@ def create_AgGrid(df, button_key= 0, selection_mode= False, update_trigger= Grid
     gridoptions = gd.build()
     grid_table = AgGrid(df, gridOptions= gridoptions,
                         update_mode= update_trigger,
-                        theme= 'streamlit',
+                        theme= 'alpine',
                         fit_columns_on_grid_load= True,
                         key= button_key,
                         reload_data= True,

@@ -2,11 +2,10 @@ import sys
 import pandas as pd
 import numpy as np
 from pathlib import Path
-print(Path.cwd())
-sys.exit()
-# sys.path.append(Path.cwd().parents[1])
+sys.path.append(Path.cwd().parents[1])
 from functions import rm_mydb
 import streamlit as st
+print(Path.cwd())
 
 BOX_QNT_COLUMN = 'CIN NO.&CIN'
 ARTICLE_NO_COLUMN = 'ITEM NO.& DESCRIPTION'
@@ -37,6 +36,7 @@ def filter_table(df:pd.DataFrame, start_index: int):
     table.reset_index(drop=True, inplace= True)
     return table
 
+@st.cache
 def rearrange_table(df: pd.DataFrame):
     df = pd.read_excel(df,sheet_name= None)
     sum_inbound = pd.DataFrame(columns=['box_qnt', 'article_no', 'Quantity'])
