@@ -4,6 +4,7 @@ echo "\
 [server]\n\
 headless = true\n\
 enableCORS=false\n\
+maxUploadSize=5\n\
 port = $PORT\n\
 [theme]\n\
 primaryColor = '#d33682'\n\
