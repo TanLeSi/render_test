@@ -5,3 +5,5 @@
 .streamlit
 
 __pycache__
+
+debug
