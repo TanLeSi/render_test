@@ -5,6 +5,9 @@ import pandas as pd
 from datetime import datetime
 sys.path.append(Path.cwd().parents[0])
 from functions import rm_mydb
+import xlsxwriter as xw
+from io import BytesIO
+import re
 
 ADD = 'add cancel order'
 BRING_BACK = 'bring back canceled or old order'
@@ -50,9 +53,98 @@ def update_order(order_number:int, purpose_search: str, purpose_new: str):
         insert_query = f"update outbound_edit_WHS set date_edit = '{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}', action= '{purpose_new}' where Document_Number = {order_number} and action = '{purpose_search}'"
         connection.execute(insert_query)
         return 1
-        
+
+def edit_ebay_control_list(file_input):
+    temp = str(file_input.getvalue())
+    result = re.search('from date,(.*),to date', temp)
+    date = result.group(1)
+    ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
+    ebay_check_list['mix'] = ebay_check_list['Palette_Box'].duplicated(keep= False).reset_index(drop= True)
+    ebay_check_list['date'] = date
+    rows = ebay_check_list.shape[0]+1
+    columns = ebay_check_list.shape[1]
+    output = BytesIO()
+    workbook = xw.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+
+    for i in range(rows):
+        for j in range(columns):
+            if i == 0:
+                worksheet.write(i,j,list(ebay_check_list.columns)[j])
+                continue
+            elif i<rows-1:
+                mix = ebay_check_list.loc[ebay_check_list.index == i-1, 'mix']
+                qty = ebay_check_list.loc[ebay_check_list.index == i-1, 'Qty_diff'].values[0]
+                if mix.values[0] == True or qty > 1:
+                    cell_format = {'bg_color':'red'}
+                    cell_format_qty = {'bg_color':'red','font_size':14}
+                    if j == 4:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format(cell_format_qty))
+                    else:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format(cell_format))
+                else:
+                    worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
+    workbook.close()
+    return output, date
+
+def edit_ebay_pickup_list(file_input):
+    temp = str(file_input.getvalue())
+    result = re.search('from date",(.*),"to date', temp)
+    date = result.group(1)
+    ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
+    ebay_check_list['date'] = date
+    rows = ebay_check_list.shape[0]+1
+    columns = ebay_check_list.shape[1]
+    output = BytesIO()
+    workbook = xw.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+    for i in range(rows):
+        for j in range(columns):
+            if i == 0:
+                worksheet.write(i,j,list(ebay_check_list.columns)[j])
+                continue
+            elif i<rows-1:
+                qty = ebay_check_list.loc[ebay_check_list.index == i-1, 'Qty_diff'].values[0]
+                if qty > 1:
+                    cell_format_qty = {'bg_color':'red','font_size':14}
+                    worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format(cell_format_qty))                    
+                else:
+                    worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
+    workbook.close()
+    return output, date
 
 st.markdown('<h1 style="text-align:center">Outbound Edit</h1>', unsafe_allow_html= True)   
+
+left_column, right_column = st.columns(2)
+
+with left_column:
+    st.header("Edit ebay control list")
+    ebay_control_upload = st.file_uploader("Upload ebay control list", accept_multiple_files= False)
+    try:
+        file_output, date_output = edit_ebay_control_list(file_input= ebay_control_upload)
+        st.download_button(
+            label="Download new Ebay control list",
+            data=file_output.getvalue(),
+            file_name=f"Ebay_control_list_{date_output}.xlsx",
+            mime="application/vnd.ms-excel"
+        )
+    except:
+        pass
+
+with right_column:
+    st.header("Edit ebay pickup list")
+    ebay_pickup_upload = st.file_uploader("Upload ebay pickup list", accept_multiple_files= False)
+    try:
+        file_output, date_output = edit_ebay_pickup_list(file_input= ebay_pickup_upload)
+        st.download_button(
+            label="Download new Ebay pickup list",
+            data=file_output.getvalue(),
+            file_name=f"Ebay_pickup_list_{date_output}.xlsx",
+            mime="application/vnd.ms-excel"
+        )
+    except:
+        pass
+
 options = st.radio(label="Choose an option", options=[ADD, BRING_BACK])
 order_number = st.text_input("Please type in cancelled order number:")
 try: 
@@ -102,3 +194,4 @@ elif options == BRING_BACK:
                 st.success('Successfully bring back order')
             except:
                 st.error("Something's wrong")
+
