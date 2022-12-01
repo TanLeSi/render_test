@@ -56,8 +56,8 @@ def update_order(order_number:int, purpose_search: str, purpose_new: str):
 
 def edit_ebay_control_list(file_input):
     temp = str(file_input.getvalue())
-    result = re.search('from date,(.*),to date', temp)
-    date = result.group(1)
+    result = re.search('from date(.*)to date', temp)
+    date = result.group(1).replace('"','').replace(",","")
     ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
     ebay_check_list['mix'] = ebay_check_list['Palette_Box'].duplicated(keep= False).reset_index(drop= True)
     ebay_check_list['date'] = date
@@ -89,8 +89,8 @@ def edit_ebay_control_list(file_input):
 
 def edit_ebay_pickup_list(file_input):
     temp = str(file_input.getvalue())
-    result = re.search('from date,(.*),to date', temp)
-    date = result.group(1)
+    result = re.search('from date(.*)to date', temp)
+    date = result.group(1).replace('"','').replace(",","")
     ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
     ebay_check_list['date'] = date
     rows = ebay_check_list.shape[0]+1
