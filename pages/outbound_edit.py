@@ -54,6 +54,7 @@ def update_order(order_number:int, purpose_search: str, purpose_new: str):
         connection.execute(insert_query)
         return 1
 
+@st.cache
 def edit_ebay_control_list(file_input):
     temp = str(file_input.getvalue())
     result = re.search('from date(.*)to date', temp)
@@ -83,10 +84,15 @@ def edit_ebay_control_list(file_input):
                     else:
                         worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format(cell_format))
                 else:
-                    worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
+                    if j == 4:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format({'font_size':14}))
+                    else:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
+                        
     workbook.close()
     return output, date
 
+@st.cache
 def edit_ebay_pickup_list(file_input):
     temp = str(file_input.getvalue())
     result = re.search('from date(.*)to date', temp)
@@ -109,7 +115,10 @@ def edit_ebay_pickup_list(file_input):
                     cell_format_qty = {'bg_color':'red','font_size':14}
                     worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format(cell_format_qty))                    
                 else:
-                    worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
+                    if j == 4:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j], workbook.add_format({'font_size':14}))
+                    else:
+                        worksheet.write(i,j, ebay_check_list.iloc[i-1,j])
     workbook.close()
     return output, date
 
