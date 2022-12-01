@@ -11,6 +11,7 @@ import re
 
 ADD = 'add cancel order'
 BRING_BACK = 'bring back canceled or old order'
+
 def get_order(order_number: int):
     select_query = f"select * from Warehouse_outbound_DUS_temp where Document_Number = {order_number}"
     pending_order = pd.read_sql_query(select_query, con= rm_mydb)

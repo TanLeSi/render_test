@@ -7,8 +7,28 @@ from functions import rm_mydb, create_AgGrid
 from inbound_functions import box_arrange
 from inbound_functions import qnt_box
 
-def update_measurement(length, width, height, qnt_box):
-    pass
+def update_measurement(df: pd.DataFrame):
+    for index, row in df.iterrows():
+        update_query_PDB = f"""
+            update product_database set 
+                carton_length_cm = {row['new_carton_length_cm']},
+                carton_width_cm = {row['new_carton_width_cm']},
+                carton_height_cm = {row['new_carton_height_cm']},
+                qnt_box = {row['new_qnt_box']}
+            where article_no = {row['article_no']}
+        """
+        update_query_PDSA = f"""
+            update product_database_storage_assign set 
+                carton_length_cm = {row['new_carton_length_cm']},
+                carton_width_cm = {row['new_carton_width_cm']},
+                carton_height_cm = {row['new_carton_height_cm']},
+                qnt_box = {row['new_qnt_box']}
+            where article_no = {row['article_no']}
+        """
+        with rm_mydb.connect() as connection:
+            if row['new_carton_length_cm']*row['new_carton_width_cm']*row['new_carton_height_cm'] != 0:
+                connection.execute(update_query_PDB)
+                connection.execute(update_query_PDSA)
 
 st.markdown('<h1 style="text-align:center">Inbound Edit</h1>', unsafe_allow_html= True)   
 
@@ -34,13 +54,14 @@ format_dict = {
 with st.expander("inbound_summary"):
     st.table(inbound_upload.style.format(format_dict))
     st.download_button(
-            label= f'sum_inventory_{date_input}',
+            label= f'sum_inbound_{date_input}',
             data = inbound_upload.assign(
                 new_carton_length_cm= inbound_upload['carton_length_cm'],
                 new_carton_width_cm= inbound_upload['carton_width_cm'],
                 new_carton_height_cm= inbound_upload['carton_height_cm'],
+                new_qnt_box= inbound_upload['qnt_box']
             ).to_csv(index= False).encode('utf-8'),
-            file_name= f'sum_inventory_{date_input}.csv',
+            file_name= f'sum_inbound_{date_input}.csv',
             mime='csv'
         )
 # inbound_upload.to_csv('inbound_test.csv', index= False)
@@ -97,6 +118,13 @@ with st.expander("view arrangement on pallete", expanded= True):
         test_arrange, test_max_arrange = box_arrange.calculate_box_arrange(input_df= temp_df)
         st.table(test_arrange)
 
-with st.expander("Update measurements in database", expanded= False):
-    measurement_upload = st.file_uploader("upload measurement file", accept_multiple_files= False)
-
+with st.expander("Update measurements in database", expanded= True):
+    with st.form("submit new measurements"):
+        measurement_upload = st.file_uploader("upload measurement file", accept_multiple_files= False)
+        file_submitted = st.form_submit_button('Submit file')
+        if file_submitted:
+            try:
+                update_measurement(df= pd.read_csv(measurement_upload))
+                st.success("Succesfully updated new measurements in database")
+            except:
+                st.error("Couldn't update measurement in database. Something's wrong!")
