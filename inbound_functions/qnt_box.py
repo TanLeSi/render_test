@@ -54,10 +54,10 @@ def rearrange_table(df: pd.DataFrame):
     return sum_inbound
 
 
-
+@st.cache
 def get_PDB(article_nos: str):
     select_query = f"""
-        select article_no, model, qnt_box, carton_length_cm, carton_width_cm, carton_height_cm
+        select article_no, model, status, qnt_box, carton_length_cm, carton_width_cm, carton_height_cm
         from product_database where article_no in ({article_nos})
     """
     PDB = pd.read_sql_query(select_query, con= rm_mydb )
@@ -107,50 +107,7 @@ def check_miss_match_qnt(right: pd.DataFrame, left: pd.DataFrame):
         st.table(result[['article_no', 'db_qty', 'ETA','Quantity']].sort_values('article_no'))
     else:
         st.write("Quantities from file matches with database match\n")
-# PDB =  pd.read_sql('product_database', con= rm_mydb)
-# a = pd.read_excel("PL-T2022110002.xlsx")
-# print(rearrange_table(df= a))
 
-
-
-
-# check_qnt_box(df= sum_inbound)
-
-
-
-# result = pd.merge(left= PO, right= sum_inbound, how= 'right', left_on= 'article_no', right_on= 'article_no')
-# result_left = pd.merge(left= PO, right= sum_inbound, how= 'left', left_on= 'article_no', right_on= 'article_no')
-# result['theo_gross_weight'] = result['weight']*result['box_qnt']
-# if len(result[result['db_qty']!=result['Quantity']]) == 0:
-#     print("Quantities from file matches with database match\n")
-# else:
-#     print('Missmatch inbound quantities (file compared with database):')
-#     print(result[result['db_qty']!=result['Quantity']][['article_no', 'db_qty', 'ETA','Quantity']].sort_values('ETA'),'\n')
-
-# if len(result_left[result_left['db_qty']!=result_left['Quantity']]) == 0:
-#     print("Quantities from database matches with file\n")
-# else:
-#     print('Missmatch inbound quantities (database compared with file):')
-#     print(result_left[result_left['db_qty']!=result_left['Quantity']][['article_no', 'db_qty', 'ETA','Quantity']].sort_values('ETA'),'\n')
-
-# if len(result[result['default_article_no'].isna()]) == 0:
-#     print('All coming articles have already been assigned a place\n')
-# else:
-#     print("Articles that haven't been assigned a place:\n")
-#     print(result[result['default_article_no'].isna()][['article_no','model','status','ETA', 'default_article_no']].sort_values('ETA'),'\n')
-
-# if len(result[result['PDB_qnt_box'] != result['PDSA_qnt_box']]) == 0:
-#     print('Qnt_box in PDB and PDSA match\n')
-# else:
-#     print("Missmatch qnt_box between PDB and PDSA\n")
-#     print(result[result['PDB_qnt_box'] != result['PDSA_qnt_box']][['article_no','ETA', 'PDB_qnt_box', 'PDSA_qnt_box']].sort_values('ETA'),'\n')
-
-# print(result)
-# # if len(result[abs((result['theo_gross_weight']-result['gross_weight']))/result['gross_weight']*100 >= 5]) == 0:
-# #     print('gross weight match\n')
-# # else:
-# #     print("Missmatch gross weight:\n")
-# #     print(result[abs((result['theo_gross_weight']-result['gross_weight']))/result['gross_weight']*100 >= 5][['article_no','ETA', 'box_qnt', 'weight', 'gross_weight', 'theo_gross_weight']].sort_values('ETA'),'\n')
 
 
 
