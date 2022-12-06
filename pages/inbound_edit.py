@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
 import sys
+import numpy as np
 import pandas as pd
 from datetime import datetime
 from functions import rm_mydb, create_AgGrid
@@ -29,6 +30,34 @@ def update_measurement(df: pd.DataFrame):
             if row['new_carton_length_cm']*row['new_carton_width_cm']*row['new_carton_height_cm'] != 0:
                 connection.execute(update_query_PDB)
                 connection.execute(update_query_PDSA)
+
+
+def update_pallet_qty(df: pd.DataFrame):
+    for index, row in df.iterrows():
+        if np.isnan(row['id']):
+            st.warning(f"Error! {row['article_no']} doesn't have a default place yet")    
+            continue    
+        max_qty = row['sum_box']
+        if row['size'] == 'Quarter':
+            max_qty_WHS = np.floor(max_qty*0.15)
+        elif row['size'] == 'Half':
+            max_qty_WHS = np.ceil(max_qty*0.4)
+        else:
+            max_qty_WHS = max_qty
+        update_query = f"""
+                        UPDATE `Warehouse_StorageUnit_DUS` SET single_quantity_max = {max_qty_WHS*row['qnt_box']}, 
+                        single_quantity_threshold = {max_qty_WHS*row['qnt_box']*0.8} where id = {int(row['id'])}"""
+        with rm_mydb.connect() as connection:
+            connection.execute(update_query)
+        # st.write(update_query)
+
+        update_query = f"""UPDATE `product_database_storage_assign` SET Full_qty={max_qty*row['qnt_box']}, Half_qty= {np.ceil(max_qty*0.4)*row['qnt_box']}, 
+                    Quarter_qty= {np.floor(max_qty*0.15)*row['qnt_box']}, Storing_way= '{row['way']}', qnt_box = {row['qnt_box']} 
+                    where article_no = {row['article_no']}"""
+        # st.write(update_query)
+
+        with rm_mydb.connect() as connection:
+            connection.execute(update_query)
 
 st.markdown('<h1 style="text-align:center">Inbound Edit</h1>', unsafe_allow_html= True)   
 
@@ -65,7 +94,7 @@ with st.expander("inbound_summary"):
             mime='csv'
         )
 # inbound_upload.to_csv('inbound_test.csv', index= False)
-with st.expander(label="Compare data from file with database"):
+with st.expander(label="Compare data from file with database", expanded= True):
     qnt_box.check_qnt_box(inbound_upload)
     sum_inbound = inbound_upload.groupby(by= ['article_no'], as_index= False).agg({
         'Quantity': 'sum',
@@ -76,14 +105,17 @@ with st.expander(label="Compare data from file with database"):
     file_db = pd.merge(left= PO, right= sum_inbound, how= 'right', left_on= 'article_no', right_on= 'article_no')
     db_file = pd.merge(left= PO, right= sum_inbound, how= 'left', left_on= 'article_no', right_on= 'article_no')
     qnt_box.check_miss_match_qnt(left= file_db, right= db_file)
+    WHS = qnt_box.get_WHS(article_nos=','.join(map(str,inbound_upload['article_no'].unique())))
+    find_default = pd.merge(left= inbound_upload[['article_no','Quantity','model', 'qnt_box']], right= WHS, how= 'left', left_on= 'article_no', right_on= 'default_article_no')
+    st.write("Following articles haven't been assigned to a default place yet")
+    st.table(find_default[find_default['default_location'].isna()])
 
 # calculate box_arrange
 
 result_arrange, max_arrange = box_arrange.calculate_box_arrange(input_df= inbound_upload)
 
 result_max_only = result_arrange.sort_values(by=['sum_box'], ascending= False).drop_duplicates(['article_no'])
-result_max_only = pd.merge(left= inbound_upload[['article_no','model']], right= result_max_only, how='left', left_on = 'article_no', right_on='article_no')
-# st.table(result_max_only.style.format(subset=['length_count','height_count'] , formatter="{:.2f}"))
+result_max_only = pd.merge(left= inbound_upload[['article_no','model','qnt_box']], right= result_max_only, how='left', left_on = 'article_no', right_on='article_no')
 
 with st.expander("view arrangement on pallete", expanded= True):
     df_return, selected_row = create_AgGrid(result_max_only, button_key= "max_arrange", selection_mode= True)
@@ -119,12 +151,14 @@ with st.expander("view arrangement on pallete", expanded= True):
         st.table(test_arrange)
 
 with st.expander("Update measurements in database", expanded= True):
+    result_arrange_update = pd.merge(left= result_max_only[['article_no','sum_box','way','qnt_box']], right= WHS[['default_article_no','id','size']], how= 'left', left_on= 'article_no', right_on= 'default_article_no')
     with st.form("submit new measurements"):
         measurement_upload = st.file_uploader("upload measurement file", accept_multiple_files= False)
         file_submitted = st.form_submit_button('Submit file')
         if file_submitted:
             try:
                 update_measurement(df= pd.read_csv(measurement_upload))
+                update_pallet_qty(df=result_arrange_update)
                 st.success("Succesfully updated new measurements in database")
             except:
                 st.error("Couldn't update measurement in database. Something's wrong!")

@@ -82,6 +82,14 @@ def get_PO(date: str):
     PO['db_qty'] = PO['db_qty'].astype(int)
     return PO
 
+def get_WHS(article_nos: str):
+    select_query = f"""
+        select default_article_no, concat(section,number,'-',level,'-',side) as default_location, id, size
+        from Warehouse_StorageUnit_DUS where default_article_no in ({article_nos})
+    """
+    WHS = pd.read_sql_query(select_query, con= rm_mydb )
+    return WHS
+
 def check_qnt_box(df: pd.DataFrame):
     for index, row in df.iterrows():
         if row['box_qnt'] == 1:
@@ -96,7 +104,7 @@ def check_qnt_box(df: pd.DataFrame):
         st.write("All qnt_box from file and PDB match \n")
     else:
         st.write('Missmatch qnt_box:')
-        st.write(miss_match_qnt_box, '\n')
+        st.table(miss_match_qnt_box)
 
 def check_miss_match_qnt(right: pd.DataFrame, left: pd.DataFrame):
     right_error = right.query('db_qty != Quantity')
