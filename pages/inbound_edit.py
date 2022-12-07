@@ -37,6 +37,8 @@ def update_pallet_qty(df: pd.DataFrame):
         if np.isnan(row['id']):
             st.warning(f"Error! {row['article_no']} doesn't have a default place yet")    
             continue    
+        if row['status'] in ('NEW','READY'):
+            max_qty = np.floor(row['sum_box']*1)
         max_qty = row['sum_box']
         if row['size'] == 'Quarter':
             max_qty_WHS = np.floor(max_qty*0.15)
@@ -108,22 +110,29 @@ with st.expander(label="Compare data from file with database", expanded= True):
     WHS = qnt_box.get_WHS(article_nos=','.join(map(str,inbound_upload['article_no'].unique())))
     find_default = pd.merge(left= inbound_upload[['article_no','Quantity','model', 'qnt_box']], right= WHS, how= 'left', left_on= 'article_no', right_on= 'default_article_no')
     st.write("Following articles haven't been assigned to a default place yet")
-    st.table(find_default[find_default['default_location'].isna()])
+    st.table(find_default[find_default['default_location'].isna()][['article_no','Quantity','model', 'qnt_box', 'default_article_no']])
 
 # calculate box_arrange
 
 result_arrange, max_arrange = box_arrange.calculate_box_arrange(input_df= inbound_upload)
 
 result_max_only = result_arrange.sort_values(by=['sum_box'], ascending= False).drop_duplicates(['article_no'])
-result_max_only = pd.merge(left= inbound_upload[['article_no','model','qnt_box']], right= result_max_only, how='left', left_on = 'article_no', right_on='article_no')
+result_max_only = pd.merge(left= inbound_upload[['article_no','model','qnt_box', 'status']], right= result_max_only, how='left', left_on = 'article_no', right_on='article_no')
 
 with st.expander("view arrangement on pallete", expanded= True):
     df_return, selected_row = create_AgGrid(result_max_only, button_key= "max_arrange", selection_mode= True)
     selected_article = int(selected_row[0]['article_no'])
 
-    st.table(pd.merge(left= inbound_upload[inbound_upload['article_no']==selected_article][['article_no','model']],
-         right= result_arrange[result_arrange['article_no'] == selected_article],
-          how='left', left_on = 'article_no', right_on='article_no'))
+    def highlight_max(df: pd.Series, threshold: float):
+        if df.sum_box == threshold:
+            return ['background-color: red'] * len(df)
+        else:
+            return ['background-color: black'] * len(df)
+
+    arrange_selected = pd.merge(left= inbound_upload[inbound_upload['article_no']==selected_article][['article_no','model']],
+                                right= result_arrange[result_arrange['article_no'] == selected_article],
+                                how='left', left_on = 'article_no', right_on='article_no')
+    st.table(arrange_selected.style.apply(highlight_max, threshold= arrange_selected['sum_box'].max(),axis=1))
 
     st.write(f'Test new dimension and qnt_box of {selected_article}')
     dimension_dict = inbound_upload[inbound_upload['article_no']==selected_article].to_dict(orient='records')[0]
@@ -148,10 +157,10 @@ with st.expander("view arrangement on pallete", expanded= True):
     }])
     if test_submitted:
         test_arrange, test_max_arrange = box_arrange.calculate_box_arrange(input_df= temp_df)
-        st.table(test_arrange)
+        st.table(test_arrange.style.apply(highlight_max, threshold= test_arrange['sum_box'].max(),axis=1))
 
 with st.expander("Update measurements in database", expanded= True):
-    result_arrange_update = pd.merge(left= result_max_only[['article_no','sum_box','way','qnt_box']], right= WHS[['default_article_no','id','size']], how= 'left', left_on= 'article_no', right_on= 'default_article_no')
+    result_arrange_update = pd.merge(left= result_max_only[['article_no','sum_box','way','qnt_box','status']], right= WHS[['default_article_no','id','size']], how= 'left', left_on= 'article_no', right_on= 'default_article_no')
     with st.form("submit new measurements"):
         measurement_upload = st.file_uploader("upload measurement file", accept_multiple_files= False)
         file_submitted = st.form_submit_button('Submit file')

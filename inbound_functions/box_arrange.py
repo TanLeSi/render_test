@@ -1,10 +1,157 @@
 import streamlit as st
 from pathlib import Path
-from inbound_functions.box import Box
-from inbound_functions.pallette import Palette
 import numpy as np
 import pandas as pd
 import sys
+import numpy as np
+
+class Box:
+    def __init__(self,length, width, height):
+        self.length = length #+ PUFFER
+        self.width = width #+ PUFFER
+        self.height = height #+ PUFFER
+        self.dimension = [self.length, self.width, self.height]
+
+        
+    def create_Box(self):
+        A = np.array([0, self.height, self.length])
+        B = np.array([self.width, self.height, self.length])
+        C = np.array([self.width, 0, self.length])
+        D = np.array([0, 0, self.length])
+        E = np.array([0, self.height,0])
+        F = np.array([self.width, self.height,0])
+        G = np.array([self.width, 0, 0])
+        H = np.array([0, 0, 0])
+        
+        box = np.array([A, B, C, D, E, F, G, H])
+        return box
+
+
+    def flip_right(box):
+        box_copy = np.copy(box)
+        rotation_matrix = np.array([[np.cos(np.pi/2),-np.sin(np.pi/2),0],
+                                    [np.sin(np.pi/2),np.cos(np.pi/2),0],
+                                    [0,0,1]])
+        x_move = max(box_copy[:,0])
+        y_move = max(box_copy[:,1])
+        translation_matrix = np.array([x_move/2,y_move/2,0])
+        box_copy -= translation_matrix                       
+        box_copy = np.matmul(box_copy,rotation_matrix)
+        translation_matrix = np.matmul(translation_matrix,rotation_matrix)
+        box_copy += np.abs(translation_matrix)
+        return np.around(box_copy, decimals= 1)
+
+
+    def turn_right(box):
+        box_copy = np.copy(box)
+        rotation_matrix = np.array([[np.cos(np.pi/2), 0 , -np.sin(np.pi/2)],
+                                    [0, 1 , 0],
+                                    [np.sin(np.pi/2), 0, np.cos(np.pi/2)]])
+        z_move = max(box_copy[:,0])        
+        translation_matrix = np.array([0, 0, z_move])
+        box_copy = np.matmul(box_copy,rotation_matrix)
+        box_copy += translation_matrix
+        # translation_matrix = np.matmul(translation_matrix,rotation_matrix)
+        # box_copy += np.abs(translation_matrix)
+        return np.around(box_copy, decimals= 1)
+
+class Palette:
+
+    empty_result= {
+        'length_count': 0,
+        'height_count': 0,
+        'left_height_count': 0,
+        'right_height_count': 0,
+        'left_length_count': 0,
+        'top_rest': 0,
+        'sum_box': 0
+    }
+
+    def __init__(self):
+        self.length = 119.5 + 3
+        self.width = 80 + 3
+        self.thickness = 14.4
+        self.height = 200 - 5 - self.thickness
+        
+
+    def same2(self,box: Box):       
+        height_count, length_count = 0, 0
+        if np.floor(self.width/box.width) != 2:
+            return Palette.empty_result
+
+        else:
+            length_count = np.floor(self.length/box.length)            
+            height_count = np.floor(self.height/box.height)  
+            
+            height_rest = self.height - height_count*box.height
+            top_rest, top_rest_max = 0, 0
+            if height_rest > box.length or height_rest > box.width:
+                top_rest = np.floor(self.width/box.length) * np.floor(self.length/box.height)
+                top_rest_max = top_rest
+            
+                top_rest = np.floor(self.width/box.height) * np.floor(self.length/box.length)
+                if top_rest > top_rest_max:
+                    top_rest_max = top_rest                
+            else:
+                top_rest_max = 0
+            if top_rest_max > 5:
+                top_rest_max = 0
+
+            return  {
+                'length_count': length_count,
+                'height_count': height_count,
+                'left_height_count': 0,
+                'right_height_count': 0,
+                'left_length_count': 0,
+                'top_rest': top_rest_max,
+                'sum_box': length_count*2*height_count+top_rest_max
+            }
+
+
+    def WH_Sym(self,box1: Box,box2: Box):
+        right_height_count, left_height_count = 0, 0
+                
+        if (box1.width + box2.width <= self.width) and np.floor(self.length/box1.length) == 2:
+                left_height_count = np.floor(self.height/box1.height)
+                right_height_count = np.floor(self.height/box2.height)
+                return {
+                    'length_count': 0,
+                    'height_count': 0,
+                    'left_height_count': left_height_count,
+                    'right_height_count': right_height_count,
+                    'left_length_count': 0,
+                    'top_rest': 0,
+                    'sum_box': 2*(left_height_count + right_height_count)
+                }
+        return Palette.empty_result
+
+                
+
+    def LH_LW_Asym(self,box_L2: Box,box2: Box):
+        left_length_count, left_height_count = 0, 0
+
+        if (box_L2.width + box2.width <= self.width) and np.floor(self.length/box2.length) == 2:
+            left_height_count = np.floor(self.height/box_L2.height)
+            left_length_count = np.floor(self.length/box_L2.length)
+
+            height_rest = self.height - left_height_count*box_L2.height
+            top_rest_max = 0
+            if height_rest > box2.width:
+                top_rest_max = 2*np.floor(height_rest/box2.width)       
+            return {
+                'length_count': 0,
+                'height_count': 0,
+                'left_height_count': left_height_count,
+                'right_height_count': 0,
+                'left_length_count': left_length_count,
+                'top_rest': top_rest_max,
+                'sum_box': (left_length_count + 2) * left_height_count
+            }
+        return Palette.empty_result
+
+
+
+
 
 
 
