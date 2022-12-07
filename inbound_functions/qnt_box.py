@@ -112,7 +112,7 @@ def check_miss_match_qnt(right: pd.DataFrame, left: pd.DataFrame):
     result = pd.concat([left_error,right_error], ignore_index= True)
     if result.shape[0]:
         st.write("Missmatch inbound quantities")
-        st.table(result[['article_no', 'db_qty', 'ETA','Quantity']].sort_values('article_no'))
+        st.table(result[['article_no', 'model', 'db_qty', 'ETA','Quantity']].sort_values('article_no'))
     else:
         st.write("Quantities from file matches with database match\n")
 
