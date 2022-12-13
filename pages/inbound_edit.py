@@ -120,6 +120,13 @@ result_max_only = pd.merge(left= inbound_upload[['article_no','model','qnt_box',
 
 with st.expander("view arrangement on pallete", expanded= True):
     df_return, selected_row = create_AgGrid(result_max_only, button_key= "max_arrange", selection_mode= True)
+    print(df_return)
+    st.download_button(
+            label= f'Download box arrangement {date_input}',
+            data = result_max_only.to_csv(index= False).encode('utf-8'),
+            file_name= f'box_arrangement_{date_input}.csv',
+            mime='csv'
+        )
     selected_article = int(selected_row[0]['article_no'])
 
     def highlight_max(df: pd.Series, threshold: float):
@@ -132,7 +139,6 @@ with st.expander("view arrangement on pallete", expanded= True):
                                 right= result_arrange[result_arrange['article_no'] == selected_article],
                                 how='left', left_on = 'article_no', right_on='article_no')
     st.table(arrange_selected.style.apply(highlight_max, threshold= arrange_selected['sum_box'].max(),axis=1))
-
     st.write(f'Test new dimension and qnt_box of {selected_article}')
     dimension_dict = inbound_upload[inbound_upload['article_no']==selected_article].to_dict(orient='records')[0]
    
