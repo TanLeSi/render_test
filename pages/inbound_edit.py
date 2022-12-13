@@ -34,9 +34,6 @@ def update_measurement(df: pd.DataFrame):
 
 def update_pallet_qty(df: pd.DataFrame):
     for index, row in df.iterrows():
-        if np.isnan(row['id']):
-            st.warning(f"Error! {row['article_no']} doesn't have a default place yet")    
-            continue    
         if row['status'] in ('NEW','READY'):
             max_qty = np.floor(row['sum_box']*1)
         max_qty = row['sum_box']
@@ -46,20 +43,22 @@ def update_pallet_qty(df: pd.DataFrame):
             max_qty_WHS = np.ceil(max_qty*0.4)
         else:
             max_qty_WHS = max_qty
+        
+        update_query = f"""UPDATE `product_database_storage_assign` SET Full_qty={max_qty*row['qnt_box']}, Half_qty= {np.ceil(max_qty*0.4)*row['qnt_box']}, 
+                    Quarter_qty= {np.floor(max_qty*0.15)*row['qnt_box']}, Storing_way= '{row['way']}', qnt_box = {row['qnt_box']} 
+                    where article_no = {row['article_no']}"""
+        # st.write(update_query)
+        with rm_mydb.connect() as connection:
+            connection.execute(update_query)
+        if np.isnan(row['id']):
+            st.warning(f"Error! {row['article_no']} doesn't have a default place yet")    
+            continue    
         update_query = f"""
                         UPDATE `Warehouse_StorageUnit_DUS` SET single_quantity_max = {max_qty_WHS*row['qnt_box']}, 
                         single_quantity_threshold = {max_qty_WHS*row['qnt_box']*0.8} where id = {int(row['id'])}"""
         with rm_mydb.connect() as connection:
             connection.execute(update_query)
         # st.write(update_query)
-
-        update_query = f"""UPDATE `product_database_storage_assign` SET Full_qty={max_qty*row['qnt_box']}, Half_qty= {np.ceil(max_qty*0.4)*row['qnt_box']}, 
-                    Quarter_qty= {np.floor(max_qty*0.15)*row['qnt_box']}, Storing_way= '{row['way']}', qnt_box = {row['qnt_box']} 
-                    where article_no = {row['article_no']}"""
-        # st.write(update_query)
-
-        with rm_mydb.connect() as connection:
-            connection.execute(update_query)
 
 st.markdown('<h1 style="text-align:center">Inbound Edit</h1>', unsafe_allow_html= True)   
 
