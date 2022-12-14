@@ -73,5 +73,3 @@ fig_specified_qnt_traceback.update_layout(
         yaxis_title = 'Quantity', hovermode = 'x', xaxis_title = 'date')
 st.plotly_chart(fig_specified_qnt_traceback, use_container_width= True)
 
-st.write(bar_data)
-st.write(specified_bar_data)
