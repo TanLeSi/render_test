@@ -103,7 +103,7 @@ class Palette:
                 'left_height_count': 0,
                 'right_height_count': 0,
                 'left_length_count': 0,
-                'top_rest': top_rest_max,
+                'top_rest': int(top_rest_max),
                 'sum_box': length_count*2*height_count+top_rest_max
             }
 
@@ -144,8 +144,8 @@ class Palette:
                 'left_height_count': left_height_count,
                 'right_height_count': 0,
                 'left_length_count': left_length_count,
-                'top_rest': top_rest_max,
-                'sum_box': (left_length_count + 2) * left_height_count
+                'top_rest': int(top_rest_max),
+                'sum_box': (left_length_count + 2) * left_height_count + top_rest_max
             }
         return Palette.empty_result
 
@@ -189,19 +189,31 @@ def calculate_box_arrange(input_df: pd.DataFrame):
             height= row['carton_height_cm'])
 
         W2 = pallete.same2(box= box_W2)
-        W2['way'] = 'W2'
+        if W2['top_rest'] == 0:
+            W2['way'] = 'W2'
+        else:
+            W2['way'] = f"W2 top {W2['top_rest']}"        
         W2 = pd.DataFrame.from_dict([W2])
 
         H2 = pallete.same2(box= box_H2)
-        H2['way'] = 'H2'
+        if H2['top_rest'] == 0:
+            H2['way'] = 'H2'
+        else:
+            H2['way'] = f"H2 top {H2['top_rest']}"        
         H2 = pd.DataFrame.from_dict([H2])
         
         L2H = pallete.same2(box= box_L2H)
-        L2H['way'] = 'L2H'
+        if L2H['top_rest'] == 0:
+            L2H['way'] = 'L2H'
+        else:
+            L2H['way'] = f"L2H top {L2H['top_rest']}"        
         L2H = pd.DataFrame.from_dict([L2H])
         
         L2W = pallete.same2(box= box_L2W)
-        L2W['way'] = 'L2W'
+        if L2W['top_rest'] == 0:
+            L2W['way'] = 'L2W'
+        else:
+            L2W['way'] = f"L2W top {L2W['top_rest']}"        
         L2W = pd.DataFrame.from_dict([L2W])
         
         WH_Sym = pallete.WH_Sym(box1=box_W2, box2= box_H2)
@@ -213,7 +225,11 @@ def calculate_box_arrange(input_df: pd.DataFrame):
         LH_Asym = pd.DataFrame.from_dict([LH_Asym])
         
         LW_Asym = pallete.LH_LW_Asym(box_L2= box_L2W, box2= box_W2)
-        LW_Asym['way'] = 'LW_Asym'
+        if LW_Asym['top_rest'] == 0:
+            LW_Asym['way'] = 'LW_Asym'
+        else:
+            LW_Asym['way'] = f"LW_Asym top {LW_Asym['top_rest']}"
+        
         LW_Asym = pd.DataFrame.from_dict([LW_Asym])
         
         temp = pd.concat([W2,H2,L2H,L2W,WH_Sym,LH_Asym,LW_Asym], ignore_index= True)
