@@ -152,7 +152,7 @@ for each_month in selected_months:
 
 agg_dict = {each:'first' if each in ['model','factory'] else 'sum' for each in columns[1:]}
 result = result.groupby(by= ['ItemCode'], as_index= False).agg(agg_dict)
-st.write(result)
-# df, selected_row = create_AgGrid(result, update_trigger=GridUpdateMode.GRID_CHANGED)
+# st.write(result)
+df, selected_row = create_AgGrid(result) #update_trigger=GridUpdateMode.GRID_CHANGED)
 file_name = str(selected_months).replace('[','').replace(']','').replace("'",'')
 st.markdown(file_download(result, name=f"inbound_sum_for {file_name}"), unsafe_allow_html= True)

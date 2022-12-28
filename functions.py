@@ -40,7 +40,7 @@ def create_AgGrid(df, button_key= 0, selection_mode= False, update_trigger= Grid
                         update_mode= update_trigger,
                         theme= 'alpine',
                         fit_columns_on_grid_load= True,
-                        key= button_key,
+                        # key= button_key,
                         reload_data= True,
                         )
     sel_row = grid_table['selected_rows']
