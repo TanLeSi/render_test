@@ -55,15 +55,37 @@ def update_order(order_number:int, purpose_search: str, purpose_new: str):
         connection.execute(insert_query)
         return 1
 
+def get_ebay_pickup(date: str):
+    select_query =  f"""
+        SELECT WOP.Document_Number,
+        case 
+            when WOP.article_no in (11765,12128,12129) then 'EBAY-ROOM' 
+            when WOP.WHS_Code in ('AIR/CEZ/TEMP/L','CEZ/TEMP/L') then PDB.model
+            else WOP.WHS_Code end as WHS_Code,
+        WOP.article_no, PDB.model, WOP.Qty_diff, WOP.Palette_Box, WOP.Order_Number
+        FROM Warehouse_outbound_DUS_packing WOP left join product_database PDB on PDB.article_no = WOP.article_no
+        WHERE WOP.Document_Number > 223000000 AND WOP.date_shipment_in = '{TODAY}'
+    """
+    return pd.read_sql_query(select_query, con= rm_mydb)
+
+def get_ebay_invoice(date: str):
+    select_query =  f"""
+        SELECT Document_Number, article_no, Palette_Box, Order_Number, Qty_diff, packing_box, WHS_Code
+        FROM Warehouse_outbound_DUS_packing
+        WHERE Document_Number > 223000000 AND date_shipment_in >= '{TODAY}' 
+        Order by Order_Number, article_no;
+    """
+    return pd.read_sql_query(select_query, con= rm_mydb)
+
 @st.cache
-def edit_ebay_control_list(file_input):
-    temp = str(file_input.getvalue())
-    result = re.search('from date(.*)to date', temp)
-    date = result.group(1).replace('"','').replace(",","")
-    ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
+def edit_ebay_control_list(file_input, date):
+    # temp = str(file_input.getvalue())
+    # result = re.search('from date(.*)to date', temp)
+    # date = result.group(1).replace('"','').replace(",","")
+    ebay_check_list = file_input
     ebay_check_list['mix'] = ebay_check_list['Palette_Box'].duplicated(keep= False).reset_index(drop= True)
     ebay_check_list['date'] = date
-    rows = ebay_check_list.shape[0]+1
+    rows = ebay_check_list.shape[0]
     columns = ebay_check_list.shape[1]
     output = BytesIO()
     workbook = xw.Workbook(output, {'in_memory': True})
@@ -94,11 +116,11 @@ def edit_ebay_control_list(file_input):
     return output, date
 
 @st.cache
-def edit_ebay_pickup_list(file_input):
-    temp = str(file_input.getvalue())
-    result = re.search('from date(.*)to date', temp)
-    date = result.group(1).replace('"','').replace(",","")
-    ebay_check_list = pd.read_csv(file_input, skiprows=1).fillna(0)
+def edit_ebay_pickup_list(file_input, date):
+    # temp = str(file_input.getvalue())
+    # result = re.search('from date(.*)to date', temp)
+    # date = result.group(1).replace('"','').replace(",","")
+    ebay_check_list = file_input
     ebay_check_list['date'] = date
     rows = ebay_check_list.shape[0]+1
     columns = ebay_check_list.shape[1]
@@ -110,7 +132,7 @@ def edit_ebay_pickup_list(file_input):
             if i == 0:
                 worksheet.write(i,j,list(ebay_check_list.columns)[j])
                 continue
-            elif i<rows-1:
+            elif i<rows:
                 qty = ebay_check_list.loc[ebay_check_list.index == i-1, 'Qty_diff'].values[0]
                 if qty > 1:
                     cell_format_qty = {'bg_color':'red','font_size':14}
@@ -125,27 +147,29 @@ def edit_ebay_pickup_list(file_input):
 
 st.markdown('<h1 style="text-align:center">Outbound Edit</h1>', unsafe_allow_html= True)   
 
+TODAY = st.date_input("Select date")
+
+ebay_pickup = get_ebay_pickup(TODAY)
+ebay_invoice = get_ebay_invoice(TODAY)
 left_column, right_column = st.columns(2)
 
 with left_column:
     st.header("Edit ebay control list")
-    ebay_control_upload = st.file_uploader("Upload ebay control list", accept_multiple_files= False)
-    try:
-        file_output, date_output = edit_ebay_control_list(file_input= ebay_control_upload)
-        st.download_button(
-            label="Download new Ebay control list",
-            data=file_output.getvalue(),
-            file_name=f"Ebay_control_list_{date_output}.xlsx",
-            mime="application/vnd.ms-excel"
-        )
-    except:
-        pass
+    # try:
+    file_output, date_output = edit_ebay_control_list(file_input= ebay_invoice, date= TODAY)
+    st.download_button(
+        label="Download new Ebay control list",
+        data=file_output.getvalue(),
+        file_name=f"Ebay_control_list_{date_output}.xlsx",
+        mime="application/vnd.ms-excel"
+    )
+    # except:
+    #     pass
 
 with right_column:
     st.header("Edit ebay pickup list")
-    ebay_pickup_upload = st.file_uploader("Upload ebay pickup list", accept_multiple_files= False)
     try:
-        file_output, date_output = edit_ebay_pickup_list(file_input= ebay_pickup_upload)
+        file_output, date_output = edit_ebay_pickup_list(file_input= ebay_pickup, date= TODAY)
         st.download_button(
             label="Download new Ebay pickup list",
             data=file_output.getvalue(),
