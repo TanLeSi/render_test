@@ -73,7 +73,7 @@ def get_PO(date: str):
         on PDSA.article_no = PO.article_no
         left join Warehouse_StorageUnit_DUS WHS
         on WHS.default_article_no = PO.article_no
-        where PO.ETA = '{date}'
+        where PO.ETA = '{date}' and destination = 0
         group by PO.article_no 
         order by PO.article_no
     """
