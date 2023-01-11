@@ -192,7 +192,9 @@ def calculate_box_arrange(input_df: pd.DataFrame):
         if W2['top_rest'] == 0:
             W2['way'] = 'W2'
         else:
-            W2['way'] = f"W2 top {W2['top_rest']}"        
+            W2['way'] = f"W2 top {W2['top_rest']}"   
+        if W2['length_count'] > 2:
+            W2['sum_box'] = 0
         W2 = pd.DataFrame.from_dict([W2])
 
         H2 = pallete.same2(box= box_H2)
@@ -202,14 +204,14 @@ def calculate_box_arrange(input_df: pd.DataFrame):
             H2['way'] = f"H2 top {H2['top_rest']}"        
         H2 = pd.DataFrame.from_dict([H2])
         
-        L2H = pallete.same2(box= box_L2H)
+        L2H = pallete.same2(box= box_L2W)
         if L2H['top_rest'] == 0:
             L2H['way'] = 'L2H'
         else:
             L2H['way'] = f"L2H top {L2H['top_rest']}"        
         L2H = pd.DataFrame.from_dict([L2H])
         
-        L2W = pallete.same2(box= box_L2W)
+        L2W = pallete.same2(box= box_L2H)
         if L2W['top_rest'] == 0:
             L2W['way'] = 'L2W'
         else:

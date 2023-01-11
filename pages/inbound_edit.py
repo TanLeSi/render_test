@@ -34,8 +34,8 @@ def update_measurement(df: pd.DataFrame):
 
 def update_pallet_qty(df: pd.DataFrame):
     for index, row in df.iterrows():
-        if row['status'] in ('NEW','READY'):
-            max_qty = np.floor(row['sum_box']*0.8)
+        # if row['status'] in ('NEW','READY'):
+        #     max_qty = np.floor(row['sum_box']*0.8)
         max_qty = row['sum_box']
         if row['size'] == 'Quarter':
             max_qty_WHS = np.floor(max_qty*0.15)

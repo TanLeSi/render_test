@@ -32,6 +32,7 @@ def get_stock_planner(country_code: str):
         on PDB.article_no = stock.article_no
         where 1
     """
+
     stock_planner = pd.read_sql_query(select_query, con= rm_mydb)
     stock_planner = mod_stock(stock_planner= stock_planner)
     return stock_planner
@@ -74,6 +75,7 @@ def get_stock_overview(country_list: list[str], MOI_threshold: int, operator: st
                 where 1
             """
         temp = pd.read_sql_query(select_query, con= rm_mydb)
+        st.write(temp)
         temp = mod_stock(temp)
         too_much = pd.concat([too_much, temp])
     country_available = too_much.groupby(['article_no']).agg({'country': lambda x: ', '.join(x)}).rename(columns={'country':'country_available_in'})
@@ -84,7 +86,7 @@ def get_stock_overview(country_list: list[str], MOI_threshold: int, operator: st
     if operator == 'greater than':
         too_much = too_much[too_much['MOI'] > MOI_threshold]
     elif operator == 'less than':
-        too_much = too_much[too_much['MOI'] > MOI_threshold]
+        too_much = too_much[too_much['MOI'] < MOI_threshold]
     else:
         too_much = too_much[(too_much['MOI'] > MOI_threshold[0]) & (too_much['MOI'] < MOI_threshold[1])]    
         
